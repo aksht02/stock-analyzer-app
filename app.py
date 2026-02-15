@@ -18,15 +18,17 @@ def get_stock_data(symbol):
     previous_close = info.get("previousClose")
     high_52 = info.get("fiftyTwoWeekHigh")
     low_52 = info.get("fiftyTwoWeekLow")
+    currency = info.get("currency", "USD")  # Detect currency
 
     if current_price and previous_close:
-        change = current_price - previous_close
-        pct_change = (change / previous_close) * 100
-        daily_change = f"{change:+.2f} ({pct_change:+.2f}%)"
+        change_value = current_price - previous_close
+        pct_change = (change_value / previous_close) * 100
+        daily_change = f"{change_value:+.2f} ({pct_change:+.2f}%)"
     else:
         daily_change = "N/A"
+        change_value = None
 
-    return company_name, current_price, daily_change, high_52, low_52, hist
+    return company_name, current_price, daily_change, high_52, low_52, hist, currency
 
 
 # ---------------- INPUT ----------------
@@ -36,20 +38,35 @@ if st.button("Fetch Stock Data"):
 
     if symbol:
         with st.spinner("Fetching data..."):
-            company, price, change, high_52, low_52, hist = get_stock_data(symbol.upper())
+            company, price, change, high_52, low_52, hist, currency = get_stock_data(symbol.upper())
 
         st.success("Stock data loaded successfully!")
 
         st.subheader(company)
 
+        # Currency symbol mapping
+        currency_symbols = {
+            "USD": "$",
+            "INR": "₹",
+            "EUR": "€",
+            "GBP": "£",
+            "JPY": "¥"
+        }
+
+        symbol_currency = currency_symbols.get(currency, currency + " ")
+
         col1, col2 = st.columns(2)
 
-        col1.metric("Current Price", f"${price:,.2f}" if price else "N/A")
+        col1.metric(
+            "Current Price",
+            f"{symbol_currency}{price:,.2f}" if price else "N/A"
+        )
+
         col2.metric("Daily Change", change)
 
         st.markdown("### 📌 52-Week Range")
-        st.write(f"High: ${high_52}")
-        st.write(f"Low: ${low_52}")
+        st.write(f"High: {symbol_currency}{high_52}" if high_52 else "High: N/A")
+        st.write(f"Low: {symbol_currency}{low_52}" if low_52 else "Low: N/A")
 
         # 📈 Chart
         st.markdown("### 📈 Last 30 Days Price Chart")
@@ -66,6 +83,8 @@ if st.button("Fetch Stock Data"):
 
     else:
         st.warning("Please enter a stock symbol")
+
+
 # ---------------- FOOTER ----------------
 st.markdown(
     """
