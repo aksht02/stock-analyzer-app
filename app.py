@@ -1,65 +1,68 @@
 import streamlit as st
 import yfinance as yf
+import pandas as pd
 
-# ---------- FUNCTION ----------
+st.set_page_config(page_title="Stock Price Analyzer", layout="centered")
+
+st.title("📊 STOCK PRICE ANALYZER")
+st.write("Check live stock prices using Yahoo Finance")
+
+# ---------------- FUNCTION ----------------
 def get_stock_data(symbol):
-    try:
-        ticker = yf.Ticker(symbol)
-        info = ticker.info
+    ticker = yf.Ticker(symbol)
+    info = ticker.info
+    hist = ticker.history(period="1mo")
 
-        company_name = info.get("longName", symbol)
-        current_price = info.get("currentPrice")
-        previous_close = info.get("previousClose")
+    company_name = info.get("longName", symbol)
+    current_price = info.get("currentPrice")
+    previous_close = info.get("previousClose")
+    high_52 = info.get("fiftyTwoWeekHigh")
+    low_52 = info.get("fiftyTwoWeekLow")
 
-        if current_price is not None and previous_close is not None:
-            change = current_price - previous_close
-            pct_change = (change / previous_close) * 100
-            daily_change = f"{change:+.2f} ({pct_change:+.2f}%)"
-        else:
-            daily_change = "N/A"
+    if current_price and previous_close:
+        change = current_price - previous_close
+        pct_change = (change / previous_close) * 100
+        daily_change = f"{change:+.2f} ({pct_change:+.2f}%)"
+    else:
+        daily_change = "N/A"
 
-        return {
-            "Company Name": company_name,
-            "Current Price": current_price,
-            "Daily Change": daily_change
-        }
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return None
+    return company_name, current_price, daily_change, high_52, low_52, hist
 
 
-# ---------- STREAMLIT UI ----------
-st.set_page_config(page_title="Stock Analyzer", layout="centered")
-
-st.title("📈 Stock Analyzer")
-st.markdown("Check live stock prices using **Yahoo Finance**")
-
-symbol = st.text_input(
-    "Enter stock symbol (e.g. AAPL, TCS.NS, RELIANCE.NS)",
-    placeholder="AAPL"
-)
+# ---------------- INPUT ----------------
+symbol = st.text_input("Enter stock symbol (e.g. TSLA, RELIANCE.NS)")
 
 if st.button("Fetch Stock Data"):
+
     if symbol:
-        with st.spinner("Fetching stock data..."):
-            data = get_stock_data(symbol.upper())
+        with st.spinner("Fetching data..."):
+            company, price, change, high_52, low_52, hist = get_stock_data(symbol.upper())
 
-        if data:
-            st.success("Stock data loaded successfully!")
+        st.success("Stock data loaded successfully!")
 
-            st.subheader(data["Company Name"])
+        st.subheader(company)
 
-            col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-            col1.metric(
-                label="Current Price",
-                value=f"₹{data['Current Price']:,.2f}" if data["Current Price"] else "N/A"
-            )
+        col1.metric("Current Price", f"${price:,.2f}" if price else "N/A")
+        col2.metric("Daily Change", change)
 
-            col2.metric(
-                label="Daily Change",
-                value=data["Daily Change"]
-            )
+        st.markdown("### 📌 52-Week Range")
+        st.write(f"High: ${high_52}")
+        st.write(f"Low: ${low_52}")
+
+        # 📈 Chart
+        st.markdown("### 📈 Last 30 Days Price Chart")
+        st.line_chart(hist["Close"])
+
+        # 💾 Download CSV
+        csv = hist.to_csv().encode("utf-8")
+        st.download_button(
+            label="Download Last 30 Days Data (CSV)",
+            data=csv,
+            file_name=f"{symbol}_data.csv",
+            mime="text/csv",
+        )
+
     else:
         st.warning("Please enter a stock symbol")
