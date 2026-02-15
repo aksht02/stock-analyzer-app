@@ -21,7 +21,6 @@ def get_stock_data(symbol):
     currency = info.get("currency", "USD")
     country = info.get("country", "")
 
-
     if current_price and previous_close:
         change_value = current_price - previous_close
         pct_change = (change_value / previous_close) * 100
@@ -29,7 +28,7 @@ def get_stock_data(symbol):
     else:
         daily_change = "N/A"
 
-    return company_name, current_price, daily_change, high_52, low_52, hist, currency
+    return company_name, current_price, daily_change, high_52, low_52, hist, currency, country
 
 
 # ---------------- INPUT ----------------
@@ -52,8 +51,18 @@ if st.button("Fetch Stock Data"):
             "JPY": "¥"
         }
 
+        symbol_currency = currency_symbols.get(currency, currency + " ")
+
         # Country flags
-        st.markdown(f"### {country_flag} {company}")
+        country_flags = {
+            "United States": "🇺🇸",
+            "India": "🇮🇳",
+            "Germany": "🇩🇪",
+            "Japan": "🇯🇵",
+            "United Kingdom": "🇬🇧"
+        }
+
+        country_flag = country_flags.get(country, "🌍")
 
         # Show company with flag
         st.markdown(f"### {country_flag} {company}")
