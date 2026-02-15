@@ -66,3 +66,14 @@ if st.button("Fetch Stock Data"):
 
     else:
         st.warning("Please enter a stock symbol")
+        st.markdown(
+    """
+    <hr>
+    <div style="text-align: center; font-size:14px; opacity:0.6;">
+        Created by <b>Akshay Tak</b> 🚀 | 
+        <a href="https://github.com/aksht02" target="_blank">GitHub</a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
