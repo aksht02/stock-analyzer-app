@@ -1,108 +1,68 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
-import pytz
 
-st.set_page_config(page_title="Advanced Stock Dashboard", layout="wide")
+st.set_page_config(page_title="Stock Price Analyzer", layout="centered")
 
-st.title("📊 ADVANCED STOCK PRICE ANALYZER")
-st.write("Live stock tracking using Yahoo Finance API")
-
-# ---------------- MARKET STATUS ----------------
-def get_market_status():
-    india = pytz.timezone("Asia/Kolkata")
-    now = datetime.now(india)
-    hour = now.hour
-
-    if 9 <= hour < 15:
-        return "🟢 Market Open"
-    else:
-        return "🔴 Market Closed"
-
-st.sidebar.markdown("### Market Status")
-st.sidebar.success(get_market_status())
-
-# ---------------- INPUT SECTION ----------------
-symbols_input = st.text_input(
-    "Enter stock symbols separated by comma (e.g. TSLA, AAPL, RELIANCE.NS)"
-)
-
-period = st.selectbox(
-    "Select Time Period",
-    ["1mo", "3mo", "6mo", "1y", "5y"]
-)
+st.title("📊 STOCK PRICE ANALYZER")
+st.write("Check live stock prices using Yahoo Finance")
 
 # ---------------- FUNCTION ----------------
-def get_stock_data(symbol, period):
+def get_stock_data(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
-    hist = ticker.history(period=period)
+    hist = ticker.history(period="1mo")
 
-    company = info.get("longName", symbol)
+    company_name = info.get("longName", symbol)
     current_price = info.get("currentPrice")
     previous_close = info.get("previousClose")
-    logo = info.get("logo_url")
+    high_52 = info.get("fiftyTwoWeekHigh")
+    low_52 = info.get("fiftyTwoWeekLow")
 
     if current_price and previous_close:
         change = current_price - previous_close
-        pct = (change / previous_close) * 100
+        pct_change = (change / previous_close) * 100
+        daily_change = f"{change:+.2f} ({pct_change:+.2f}%)"
     else:
-        change = 0
-        pct = 0
+        daily_change = "N/A"
 
-    return company, current_price, change, pct, hist, logo
+    return company_name, current_price, daily_change, high_52, low_52, hist
 
 
-# ---------------- BUTTON ACTION ----------------
-if st.button("Analyze Stocks"):
+# ---------------- INPUT ----------------
+symbol = st.text_input("Enter stock symbol (e.g. TSLA, RELIANCE.NS)")
 
-    if symbols_input:
-        symbols = [s.strip().upper() for s in symbols_input.split(",")]
+if st.button("Fetch Stock Data"):
 
-        comparison_data = []
+    if symbol:
+        with st.spinner("Fetching data..."):
+            company, price, change, high_52, low_52, hist = get_stock_data(symbol.upper())
 
-        for symbol in symbols:
-            company, price, change, pct, hist, logo = get_stock_data(symbol, period)
+        st.success("Stock data loaded successfully!")
 
-            st.markdown("---")
-            col_logo, col_data = st.columns([1, 3])
+        st.subheader(company)
 
-            # Company Logo
-            if logo:
-                col_logo.image(logo, width=80)
+        col1, col2 = st.columns(2)
 
-            col_data.subheader(company)
+        col1.metric("Current Price", f"${price:,.2f}" if price else "N/A")
+        col2.metric("Daily Change", change)
 
-            # Color change based on gain/loss
-            if change >= 0:
-                color = "green"
-            else:
-                color = "red"
+        st.markdown("### 📌 52-Week Range")
+        st.write(f"High: ${high_52}")
+        st.write(f"Low: ${low_52}")
 
-            col1, col2 = st.columns(2)
+        # 📈 Chart
+        st.markdown("### 📈 Last 30 Days Price Chart")
+        st.line_chart(hist["Close"])
 
-            col1.metric(
-                "Current Price",
-                f"${price:,.2f}" if price else "N/A",
-                delta=f"{change:+.2f} ({pct:+.2f}%)"
-            )
-
-            # Chart
-            st.line_chart(hist["Close"])
-
-            # Save for comparison table
-            comparison_data.append({
-                "Symbol": symbol,
-                "Price": price,
-                "Change": round(change, 2),
-                "% Change": round(pct, 2)
-            })
-
-        # ---------------- COMPARISON TABLE ----------------
-        st.markdown("## 📊 Stock Comparison Table")
-        df = pd.DataFrame(comparison_data)
-        st.dataframe(df)
+        # 💾 Download CSV
+        csv = hist.to_csv().encode("utf-8")
+        st.download_button(
+            label="Download Last 30 Days Data (CSV)",
+            data=csv,
+            file_name=f"{symbol}_data.csv",
+            mime="text/csv",
+        )
 
     else:
-        st.warning("Please enter at least one stock symbol.")
+        st.warning("Please enter a stock symbol")
