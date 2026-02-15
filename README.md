@@ -1,2 +1,2 @@
-# stock-analyzer-app
-An interactive Stock Analyzer built with Python and Streamlit that provides real-time stock prices and daily performance metrics
+## 🔗 Live Demo
+[Click Here to View the Live Stock Dashboard](https://akshayt-stock-dashboard.streamlit.app)
