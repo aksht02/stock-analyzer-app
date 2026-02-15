@@ -30,18 +30,26 @@ st.sidebar.success(get_market_status())
 
 # ---------------- SEARCH FUNCTION ----------------
 def search_stock(query):
-    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}"
-    response = requests.get(url)
-    data = response.json()
+    try:
+        url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}"
+        response = requests.get(url, timeout=5)
 
-    results = []
-    for item in data.get("quotes", []):
-        symbol = item.get("symbol")
-        name = item.get("shortname") or item.get("longname")
-        if symbol and name:
-            results.append(f"{name} ({symbol})")
+        if response.status_code != 200:
+            return []
 
-    return results
+        data = response.json()
+
+        results = []
+        for item in data.get("quotes", []):
+            symbol = item.get("symbol")
+            name = item.get("shortname") or item.get("longname")
+            if symbol and name:
+                results.append(f"{name} ({symbol})")
+
+        return results
+
+    except Exception:
+        return []
 
 # ---------------- STOCK DATA FUNCTION ----------------
 def get_stock_data(symbol, period):
