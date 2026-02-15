@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Stock Price Analyzer", layout="centered")
 
 st.title("📊 STOCK PRICE ANALYZER")
-st.write("Check live stock prices using Yahoo Finance")
+st.caption("Live global stock tracking with smart currency & country detection")
 
 # ---------------- FUNCTION ----------------
 def get_stock_data(symbol):
