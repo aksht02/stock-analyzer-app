@@ -19,6 +19,8 @@ def get_stock_data(symbol):
     high_52 = info.get("fiftyTwoWeekHigh")
     low_52 = info.get("fiftyTwoWeekLow")
     currency = info.get("currency", "USD")
+    country = info.get("country", "")
+
 
     if current_price and previous_close:
         change_value = current_price - previous_close
@@ -37,7 +39,7 @@ if st.button("Fetch Stock Data"):
 
     if symbol:
         with st.spinner("Fetching data..."):
-            company, price, change, high_52, low_52, hist, currency = get_stock_data(symbol.upper())
+            company, price, change, high_52, low_52, hist, currency, country = get_stock_data(symbol.upper())
 
         st.success("Stock data loaded successfully!")
 
@@ -51,16 +53,7 @@ if st.button("Fetch Stock Data"):
         }
 
         # Country flags
-        currency_flags = {
-            "USD": "🇺🇸",
-            "INR": "🇮🇳",
-            "EUR": "🇪🇺",
-            "GBP": "🇬🇧",
-            "JPY": "🇯🇵"
-        }
-
-        symbol_currency = currency_symbols.get(currency, currency + " ")
-        country_flag = currency_flags.get(currency, "🌍")
+        st.markdown(f"### {country_flag} {company}")
 
         # Show company with flag
         st.markdown(f"### {country_flag} {company}")
