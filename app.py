@@ -18,7 +18,7 @@ def get_stock_data(symbol):
     previous_close = info.get("previousClose")
     high_52 = info.get("fiftyTwoWeekHigh")
     low_52 = info.get("fiftyTwoWeekLow")
-    currency = info.get("currency", "USD")  # Detect currency
+    currency = info.get("currency", "USD")
 
     if current_price and previous_close:
         change_value = current_price - previous_close
@@ -26,7 +26,6 @@ def get_stock_data(symbol):
         daily_change = f"{change_value:+.2f} ({pct_change:+.2f}%)"
     else:
         daily_change = "N/A"
-        change_value = None
 
     return company_name, current_price, daily_change, high_52, low_52, hist, currency
 
@@ -42,9 +41,7 @@ if st.button("Fetch Stock Data"):
 
         st.success("Stock data loaded successfully!")
 
-        st.subheader(company)
-
-        # Currency symbol mapping
+        # Currency symbols
         currency_symbols = {
             "USD": "$",
             "INR": "₹",
@@ -53,7 +50,20 @@ if st.button("Fetch Stock Data"):
             "JPY": "¥"
         }
 
+        # Country flags based on currency
+        currency_flags = {
+            "USD": "🇺🇸",
+            "INR": "🇮🇳",
+            "EUR": "🇪🇺",
+            "GBP": "🇬🇧",
+            "JPY": "🇯🇵"
+        }
+
         symbol_currency = currency_symbols.get(currency, currency + " ")
+        country_flag = currency_flags.get(currency, "🌍")
+
+        # Show company with flag
+        st.subheader(f"{country_flag} {company}")
 
         col1, col2 = st.columns(2)
 
@@ -68,11 +78,9 @@ if st.button("Fetch Stock Data"):
         st.write(f"High: {symbol_currency}{high_52}" if high_52 else "High: N/A")
         st.write(f"Low: {symbol_currency}{low_52}" if low_52 else "Low: N/A")
 
-        # 📈 Chart
         st.markdown("### 📈 Last 30 Days Price Chart")
         st.line_chart(hist["Close"])
 
-        # 💾 Download CSV
         csv = hist.to_csv().encode("utf-8")
         st.download_button(
             label="Download Last 30 Days Data (CSV)",
