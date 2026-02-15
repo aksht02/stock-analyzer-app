@@ -47,21 +47,23 @@ if st.button("Fetch Stock Data"):
             "INR": "₹",
             "EUR": "€",
             "GBP": "£",
-            "JPY": "¥"}
+            "JPY": "¥"
+        }
 
-        # Country flags based on currency
-       currency_flags = {
-    "USD": "🇺🇸",
-    "INR": "🇮🇳",
-    "EUR": "🇪🇺",
-    "GBP": "🇬🇧",
-    "JPY": "🇯🇵"}
+        # Country flags
+        currency_flags = {
+            "USD": "🇺🇸",
+            "INR": "🇮🇳",
+            "EUR": "🇪🇺",
+            "GBP": "🇬🇧",
+            "JPY": "🇯🇵"
+        }
 
         symbol_currency = currency_symbols.get(currency, currency + " ")
         country_flag = currency_flags.get(currency, "🌍")
 
         # Show company with flag
-        st.subheader(f"{country_flag} {company}")
+        st.markdown(f"### {country_flag} {company}")
 
         col1, col2 = st.columns(2)
 
