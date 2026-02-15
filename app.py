@@ -51,13 +51,13 @@ if st.button("Fetch Stock Data"):
         }
 
         # Country flags based on currency
-        currency_flags = {
-            "USD": "🇺🇸",
-            "INR": "🇮🇳",
-            "EUR": "🇪🇺",
-            "GBP": "🇬🇧",
-            "JPY": "🇯🇵"
-        }
+       currency_flags = {
+    "USD": "🇺🇸",
+    "INR": "🇮🇳",
+    "EUR": "🇪🇺",
+    "GBP": "🇬🇧",
+    "JPY": "🇯🇵"
+}
 
         symbol_currency = currency_symbols.get(currency, currency + " ")
         country_flag = currency_flags.get(currency, "🌍")
